@@ -21,3 +21,7 @@ Sentiment distribution charts
 Issue category analysis
 sortable feedback table
 Summary metrics
+
+
+## 🎥 Demo Video
+Watch the project demo here: [YouTube Demo Link](https://youtube.com/shorts/ULa89RSAEVU)
