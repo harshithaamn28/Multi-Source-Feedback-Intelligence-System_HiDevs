@@ -1,7 +1,9 @@
 import streamlit as st
 import pandas as pd
 from textblob import TextBlob
+import requests
 import os
+from fpdf import FPDF
 
 # -------------------------------
 # PAGE CONFIG (important)
@@ -42,6 +44,11 @@ try:
     file_path = os.path.join(base_dir, "data", "sample_feedback.csv")
 
     df = pd.read_csv(file_path)
+
+    api_data = requests.get("http://127.0.0.1:8000/reviews").json()
+    api_df = pd.DataFrame(api_data)
+
+    df = pd.concat([df, api_df], ignore_index=True)
 
 except Exception as e:
     st.error("❌ Error loading CSV file")
@@ -106,8 +113,26 @@ st.subheader("🔍 Filter Feedback")
 option = st.selectbox(
     "Select Sentiment", ["All", "Positive", "Negative", "Neutral"]
 )
+source_option = st.selectbox(
+    "Select Source", ["All", "csv", "api"]
+)
+date_range = st.date_input(
+    "Select Date Range",
+    value=(df["date"].min(), df["date"].max())
+)
+
 
 filtered_df = df.copy()
+if len(date_range) == 2:
+    start_date, end_date = date_range
+    filtered_df = filtered_df[
+        (pd.to_datetime(filtered_df["date"]) >= pd.to_datetime(start_date)) &
+        (pd.to_datetime(filtered_df["date"]) <= pd.to_datetime(end_date))
+    ]
+if source_option != "All":
+    filtered_df = filtered_df[
+        filtered_df["source"].str.lower() == source_option.lower()
+    ]
 
 if option != "All":
     filtered_df = df[df["Sentiment"] == option]
@@ -130,5 +155,27 @@ with col2:
 # -------------------------------
 # TABLE
 # -------------------------------
+st.line_chart(filtered_df["Category"].value_counts())
+
+st.subheader("📈 Sentiment Trend Over Time")
+
+df["date"] = pd.to_datetime(df["date"])
+
+trend_df = df.groupby(["date", "Sentiment"]).size().unstack(fill_value=0)
+
+st.line_chart(trend_df)
+def create_pdf():
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+
+    pdf.cell(200, 10, txt="Weekly Feedback Report", ln=True)
+    pdf.cell(200, 10, txt=f"Total Feedback: {len(df)}", ln=True)
+
+    pdf.output("weekly_report.pdf")
+
+if st.button("📄 Generate PDF Report"):
+    create_pdf()
+    st.success("PDF report generated successfully")
+# TABLE
 st.subheader("📄 Feedback Data")
-st.dataframe(filtered_df, use_container_width=True)
