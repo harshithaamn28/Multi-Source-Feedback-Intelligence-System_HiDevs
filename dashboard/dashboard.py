@@ -34,7 +34,7 @@ st.markdown("""
 # -------------------------------
 # TITLE
 # -------------------------------
-st.title("📊 Feedback Intelligence System")
+st.title("Feedback Intelligence System")
 
 # -------------------------------
 # LOAD CSV
@@ -51,7 +51,7 @@ try:
     df = pd.concat([df, api_df], ignore_index=True)
 
 except Exception as e:
-    st.error("❌ Error loading CSV file")
+    st.error("Error loading CSV file")
     st.write(e)
     st.stop()
 
@@ -59,7 +59,7 @@ except Exception as e:
 # CHECK COLUMN
 # -------------------------------
 if "message" not in df.columns:
-    st.error("❌ CSV must contain 'message' column")
+    st.error("CSV must contain 'message' column")
     st.stop()
 
 # -------------------------------
@@ -97,7 +97,7 @@ df["Category"] = df["message"].apply(categorizing)
 # -------------------------------
 # METRICS (COLORED)
 # -------------------------------
-st.subheader("📌 Summary")
+st.subheader(" Summary")
 
 col1, col2, col3 = st.columns(3)
 
@@ -140,7 +140,7 @@ if option != "All":
 # -------------------------------
 # CHARTS (SIDE BY SIDE)
 # -------------------------------
-st.subheader("📊 Analysis")
+st.subheader(" Analysis")
 
 col1, col2 = st.columns(2)
 
@@ -157,7 +157,7 @@ with col2:
 # -------------------------------
 st.line_chart(filtered_df["Category"].value_counts())
 
-st.subheader("📈 Sentiment Trend Over Time")
+st.subheader("Sentiment Trend Over Time")
 
 df["date"] = pd.to_datetime(df["date"])
 
@@ -174,8 +174,16 @@ def create_pdf():
 
     pdf.output("weekly_report.pdf")
 
-if st.button("📄 Generate PDF Report"):
+if st.button(" Generate PDF Report"):
     create_pdf()
     st.success("PDF report generated successfully")
+# -------------------------------
+# ISSUE PRIORITIZATION
+# -------------------------------
+st.subheader("🚨 Priority Issues")
+
+priority_issues = df[df["Sentiment"] == "Negative"]["Category"].value_counts()
+
+st.bar_chart(priority_issues)
 # TABLE
-st.subheader("📄 Feedback Data")
+st.subheader("Feedback Data")
